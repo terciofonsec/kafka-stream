@@ -1,0 +1,38 @@
+spring:
+  cloud:
+    stream:
+      bindings:
+        employees-out-0:
+          content-type: application/*+avro
+          destination: com.my.producer.employees
+          producer:
+            useNativeEncoding: 'true'
+        employees-in-0:
+          content-type: application/*+avro
+          group: employeesConsumerGroup
+          destination: com.my.producer.employees
+          consumer.useNativeEncoding: true
+      kafka:
+        binder:
+          min-partition-count: '2'
+          producer-properties:
+            value:
+              subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
+              serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+            schema:
+              registry:
+                url: http://${SCHEMA_REGISTRY_HOST:localhost}:${SCHEMA_REGISTRY_PORT:8081}
+            key:
+              serializer: org.apache.kafka.common.serialization.StringSerializer
+          consumer-properties:
+            value:
+              subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
+              deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+            schema.registry.url: http://${SCHEMA_REGISTRY_HOST:localhost}:${SCHEMA_REGISTRY_PORT:8081}
+            key.deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+            specific.avro.reader: true
+          brokers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:29092}
+      output-bindings: employees
+  application:
+    name: employees-hey
+log4j.appender.CON: org.apache.log4j.ConsoleAppender
